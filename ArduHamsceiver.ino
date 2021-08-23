@@ -9,7 +9,7 @@
 // included library for keypad matrix
 #include <Keypad.h>
 // include the library code for LCD using spi connection
-#include "Wire.h"
+// #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 
 //TODO:  add hamsheild libraies and Tx/Rx code
@@ -136,7 +136,7 @@ void setFreq()
   lcd.print("Set Frequency in Hz");
   lcd.setCursor(2, 2);
   lcd.print("Cur Freq: ");
-  lcd.print(String(freq));  // DFW display unsigned int freq as a string DFW
+  lcd.print(String(freq));  // DFW display unsigned int freq as a string - doesn't display proper number DFW
   lcd.setCursor(2, 3);
   lcd.print("New Freq: "); // user prompt for new frequency in kHz
 
@@ -159,9 +159,9 @@ void setFreq()
   delay(100); //wait to flush the display
   //new page to confirm new frequency
   lcd.setCursor(4, 1);
-  lcd.print("New frequency: ");
+  lcd.print("New frequency: "); 
   lcd.setCursor(4, 2);
-  lcd.print(String(freq));
+  lcd.print(String(freq)); //DFW displays new frequency - DFW doesn't display proper number
   delay(3000);
   return;
 }

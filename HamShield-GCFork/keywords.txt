@@ -1,0 +1,221 @@
+#######################################
+# Syntax Coloring Map HamShield
+#######################################
+
+#######################################
+# Datatypes  KEYWORD2  KEYWORD1)
+#######################################
+
+HamShield	KEYWORD1
+HAMShield	KEYWORD1
+
+#######################################
+# Methods and Functions  KEYWORD2  KEYWORD2)
+#######################################
+setModeTransmit	KEYWORD2
+setModeReceive	KEYWORD2
+setModeOff	KEYWORD2
+setTxSource	KEYWORD2
+setTxSourceMic	KEYWORD2
+setTxSourceTone1	KEYWORD2
+setTxSourceTone2	KEYWORD2
+setTxSourceTones	KEYWORD2
+setTxSourceNone	KEYWORD2
+getTxSource	KEYWORD2
+setCtcssCdcssMode KEYWORD2
+getCtcssCdcssMode  KEYWORD2
+setDetPhaseShift  KEYWORD2
+setDetInvertCdcss  KEYWORD2
+setDetCdcss  KEYWORD2
+setDetCtcss  KEYWORD2
+disableCtcssCdcss  KEYWORD2	
+
+setCtcss KEYWORD2  
+setCtcssFreq KEYWORD2  
+getCtcssFreqMilliHz  KEYWORD2
+getCtcssFreqHz  KEYWORD2
+setCtcssFreqToStandard  KEYWORD2 
+enableCtcssTx  KEYWORD2
+enableCtcssRx  KEYWORD2
+enableCtcss  KEYWORD2
+disableCtcssTx  KEYWORD2
+disableCtcssRx  KEYWORD2
+disableCtcss  KEYWORD2
+setCtcssDetThreshIn KEYWORD2  
+getCtcssDetThreshIn  KEYWORD2
+setCtcssDetThreshOut KEYWORD2  
+getCtcssDetThreshOut  KEYWORD2
+getCtcssToneDetected  KEYWORD2
+
+setCtcssGpioSel KEYWORD2  
+getCtcssGpioSel  KEYWORD2
+
+setCdcssInvert KEYWORD2  
+getCdcssInvert  KEYWORD2
+
+setCdcssSel KEYWORD2  
+getCdcssSel  KEYWORD2
+
+getCdcssNegDetEnabled  KEYWORD2
+
+
+getCdcssPosDetEnabled  KEYWORD2
+
+
+getCtssDetEnabled  KEYWORD2
+
+setCdcssCode KEYWORD2  
+getCdcssCode  KEYWORD2
+
+
+setSQOn  KEYWORD2
+setSQOff  KEYWORD2
+getSQState  KEYWORD2
+
+
+setSQHiThresh KEYWORD2  
+getSQHiThresh  KEYWORD2
+setSQLoThresh KEYWORD2  
+getSQLoThresh  KEYWORD2
+getSquelching  KEYWORD2
+
+setSQOutSel  KEYWORD2
+clearSQOutSel  KEYWORD2
+getSQOutSel  KEYWORD2
+
+
+setVoxOn  KEYWORD2
+setVoxOff  KEYWORD2
+getVoxOn  KEYWORD2
+
+
+setVoxOpenThresh KEYWORD2  
+getVoxOpenThresh  KEYWORD2
+setVoxShutThresh KEYWORD2  
+getVoxShutThresh  KEYWORD2
+
+
+enableTailNoiseElim  KEYWORD2
+disableTailNoiseElim  KEYWORD2
+getTailNoiseElimEnabled  KEYWORD2
+
+setShiftSelect KEYWORD2  
+getShiftSelect  KEYWORD2
+
+
+enableDTMFReceive  KEYWORD2
+setDTMFDetectTime KEYWORD2  
+getDTMFDetectTime  KEYWORD2
+setDTMFIdleTime KEYWORD2  
+getDTMFIdleTime  KEYWORD2
+DTMFRxLoop  KEYWORD2
+DTMFcode2char KEYWORD2  
+DTMFchar2code KEYWORD2  
+setDTMFTxTime KEYWORD2  
+getDTMFTxTime  KEYWORD2
+disableDTMF  KEYWORD2
+getDTMFSample  KEYWORD2
+getDTMFCode  KEYWORD2
+getDTMFTxActive  KEYWORD2
+setDTMFCode KEYWORD2  
+
+HStone KEYWORD2  
+HSnoTone KEYWORD2  
+lookForTone KEYWORD2  
+toneDetected  KEYWORD2
+
+
+setFMVoiceCssDeviation KEYWORD2  
+getFMVoiceCssDeviation  KEYWORD2
+setFMCssDeviation KEYWORD2  
+getFMCssDeviation  KEYWORD2
+
+
+setMute  KEYWORD2
+setUnmute  KEYWORD2
+setVolume1 KEYWORD2  
+getVolume1  KEYWORD2
+setVolume2 KEYWORD2  
+getVolume2  KEYWORD2
+
+setGpioMode KEYWORD2  
+setGpioHiZ KEYWORD2  
+setGpioFcn KEYWORD2 
+setGpioLow KEYWORD2  
+setGpioHi KEYWORD2  
+getGpioMode KEYWORD2  
+setGpios KEYWORD2  
+getGpios  KEYWORD2
+
+enableInterrupt KEYWORD2  
+disableInterrupt KEYWORD2  
+getInterruptEnabled KEYWORD2  
+
+setStMode KEYWORD2  
+getStMode  KEYWORD2
+setStFullAuto  KEYWORD2
+setStRxAutoTxManu  KEYWORD2
+setStFullManu  KEYWORD2
+
+bypassPreDeEmph  KEYWORD2
+usePreDeEmph  KEYWORD2
+getPreDeEmphEnabled  KEYWORD2
+
+bypassVoiceHpf  KEYWORD2
+useVoiceHpf  KEYWORD2
+getVoiceHpfEnabled  KEYWORD2
+bypassVoiceLpf  KEYWORD2
+useVoiceLpf  KEYWORD2
+getVoiceLpfEnabled  KEYWORD2
+
+
+bypassVoxHpf  KEYWORD2
+useVoxHpf  KEYWORD2
+getVoxHpfEnabled  KEYWORD2
+bypassVoxLpf  KEYWORD2
+useVoxLpf  KEYWORD2
+getVoxLpfEnabled  KEYWORD2
+
+
+readRSSI  KEYWORD2
+readVSSI  KEYWORD2
+readMSSI  KEYWORD2
+
+setRfPower KEYWORD2  
+
+
+setGMRSChannel KEYWORD2  
+setFRSChannel KEYWORD2  
+setMURSChannel KEYWORD2 
+setWXChannel KEYWORD2  
+scanWXChannel  KEYWORD2
+
+
+scanMode KEYWORD2  
+findWhitespace KEYWORD2  
+scanChannels KEYWORD2  
+findWhitespaceChannels KEYWORD2  
+
+setupMorseRx  KEYWORD2
+getMorseFreq  KEYWORD2
+setMorseFreq KEYWORD2  
+getMorseDotMillis  KEYWORD2
+setMorseDotMillis KEYWORD2  
+morseOut KEYWORD2  
+morseRxLoop  KEYWORD2
+handleMorseTone KEYWORD2  
+parseMorse KEYWORD2  
+morseLookup KEYWORD2  
+morseReverseLookup KEYWORD2  
+waitForChannel KEYWORD2 
+SSTVVISCode KEYWORD2  
+SSTVTestPattern KEYWORD2  
+toneWait KEYWORD2  
+toneWaitU KEYWORD2  
+parityCalc KEYWORD2  
+
+#######################################
+# Constants  KEYWORD2  LITERAL1)
+#######################################
+#FILE_READ	LITERAL1
+#FILE_WRITE	LITERAL1

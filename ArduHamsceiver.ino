@@ -33,7 +33,7 @@ byte colPins[COLS] = {45, 43, 41, 39}; //connect to the column pinouts of the ke
 
 //Hamshield Stuff
 
-unsigned int freq = 432100;
+uint32_t freq = 432100;
 
 //initialize an instance of class NewKeypad
 Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
@@ -45,7 +45,8 @@ void setup() {
   // set up the LCD's number of rows and columns:
   lcd.begin(20, 4);
   // Print a message to the LCD.
-  lcd.print("hello, world!");
+  lcd.setCursor(2, 1);
+  lcd.print("ArduHamsceiver");
   delay(5000);
   lcd.clear();
   delay(100);
@@ -88,6 +89,8 @@ void loop() {
       lcd.clear();
       delay(100);
       break;
+    //switch case seems to fail after 2!!!!!
+          
     case '3': //test code to for keypad matrix
       lcd.clear();
       lcd.setCursor(6, 0);
@@ -104,6 +107,7 @@ void loop() {
       }
       lcd.clear();
       break;
+      
     case '4'://test code to for keypad matrix
       lcd.clear();
       lcd.setCursor(6, 0);
@@ -120,6 +124,7 @@ void loop() {
       }
       lcd.clear();
       break;
+      
     default:
       break;
   }
@@ -128,7 +133,7 @@ void loop() {
 void setFreq()
 {
   int x = 0;  //define the length og freqChar is 6 for Mhz
-  char freqChar[x]; // collect keypad Characters as an array of 6 digits
+  uint32_t newFreq =0;
 
   //New Page showing the old frequency and prompt user for new frequency.
   lcd.clear();
@@ -136,7 +141,7 @@ void setFreq()
   lcd.print("Set Frequency in Hz");
   lcd.setCursor(2, 2);
   lcd.print("Cur Freq: ");
-  lcd.print(String(freq));  // DFW display unsigned int freq as a string - doesn't display proper number DFW
+  lcd.print(float(freq) / 1000, 3); // DFW display unsigned int freq as a string DFW
   lcd.setCursor(2, 3);
   lcd.print("New Freq: "); // user prompt for new frequency in kHz
 
@@ -146,22 +151,63 @@ void setFreq()
     {
       if (int(customKey) != 0) {
         lcd.print(customKey);
-        freqChar[x] = customKey;
-        customKey = 0;
-        x++;
+        newFreq = (newFreq * 10) + charToNum(customKey); //change the char input to an int and udpate the newFreq variable appropriately.  
+        customKey = 0;  //flush input
+        x++; //TODO: add a 6 digit entry only
       }
       customKey = customKeypad.getKey();
     }
   }
 
-  freq = atoi(freqChar);  // Arrary of Char collected above into the unsigned int freq.
+  freq = newFreq;  //update to new frequency.
   lcd.clear();
   delay(100); //wait to flush the display
+  
   //new page to confirm new frequency
   lcd.setCursor(4, 1);
-  lcd.print("New frequency: "); 
+  lcd.print("New frequency: ");
   lcd.setCursor(4, 2);
-  lcd.print(String(freq)); //DFW displays new frequency - DFW doesn't display proper number
+  lcd.print(float(freq) / 1000, 3); 
   delay(3000);
   return;
 }
+
+int charToNum(char customKey)
+//To Be used in conjunction with the keypad to return a int value number
+{
+  int value;
+  switch (customKey) {
+    case '1':
+      value = 1;
+      break;
+    case '2':
+      value = 2;
+      break;
+    case '3':
+      value = 3;
+      break;
+    case '4':
+      value = 4;
+      break;
+    case '5':
+      value = 5;
+      break;
+    case '6':
+      value = 6;
+      break;
+    case '7':
+      value = 7;
+      break;
+    case '8':
+      value = 8;
+      break;
+    case '9':
+      value = 9;
+      break;
+    case '0':
+      value = 0;
+      break;
+  }
+  return value;
+}
+

@@ -12,8 +12,8 @@
 // #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 
-//TODO:  add hamsheild libraies and Tx/Rx code
-
+//Hamsheild libraies
+#include <HamShield.h>
 
 //keypad matrix////
 const byte ROWS = 4; //four rows
@@ -32,7 +32,22 @@ byte colPins[COLS] = {45, 43, 41, 39}; //connect to the column pinouts of the ke
 /// end Key Pad matrix
 
 //Hamshield Stuff
+// create object for radio
+HamShield radio;
+// To use non-standard pins, use the following initialization
+//HamShield radio(ncs_pin, clk_pin, dat_pin);
 
+#define LED_PIN 13
+#define RSSI_REPORT_RATE_MS 5000
+
+#define MIC_PIN 3
+#define RESET_PIN A3
+#define SWITCH_PIN 2
+
+bool blinkState = false;
+bool currently_tx;
+
+unsigned long rssi_timeout;
 uint32_t freq = 432100;
 
 //initialize an instance of class NewKeypad
@@ -48,6 +63,22 @@ void setup() {
   lcd.setCursor(2, 1);
   lcd.print("ArduHamsceiver");
   delay(5000);
+  
+  
+  //setup Hamsheild
+  // NOTE: if not using PWM out, it should be held low to avoid tx noise
+  pinMode(MIC_PIN, OUTPUT);
+  pinMode(SWITCH_PIN, INPUT_PULLUP); // prep the switch
+  pinMode(RESET_PIN, OUTPUT);        // set up the reset control pin
+  // configure Arduino LED for
+  pinMode(LED_PIN, OUTPUT);
+
+  digitalWrite(MIC_PIN, LOW);
+  digitalWrite(RESET_PIN, LOW);
+  rssi_timeout = 0;
+
+  //initializeRadio();
+  
   lcd.clear();
   delay(100);
 }
@@ -58,13 +89,15 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print("[1]Set Freq [2]Tx/Rx");
   lcd.setCursor(0, 2);
-  lcd.print("[3]Menu 3  [4] Menu 4");
+  lcd.print("[3]Weather  [4] Menu 4");
 
   char customKey = customKeypad.getKey();
   /*if (customKey) {
     lcd.clear();
     lcd.print(customKey);
     }*/
+
+  int x = 0;
   switch (customKey)
   {
     case '1':
@@ -78,7 +111,7 @@ void loop() {
       lcd.setCursor(2, 2);
       lcd.print("Press STOP to go back");
       customKey = customKeypad.getKey();
-      int x = 0;
+
       while (customKey != 'E')
       {
         x++;
@@ -89,25 +122,16 @@ void loop() {
       lcd.clear();
       delay(100);
       break;
-    //switch case seems to fail after 2!!!!!
-          
+
     case '3': //test code to for keypad matrix
-      lcd.clear();
-      lcd.setCursor(6, 0);
-      lcd.print("Menu 3");
       lcd.setCursor(2, 2);
-      lcd.print("Press STOP to go back");
-      customKey = customKeypad.getKey();
-      while (customKey != 'E')
-      {
-        x++;
-        lcd.setCursor(10, 3);
-        lcd.print(x);
-        customKey = customKeypad.getKey();
-      }
+      lcd.print("X");
+      delay(100);
+      weatherMenu();
       lcd.clear();
+      delay(100);
       break;
-      
+
     case '4'://test code to for keypad matrix
       lcd.clear();
       lcd.setCursor(6, 0);
@@ -124,7 +148,7 @@ void loop() {
       }
       lcd.clear();
       break;
-      
+
     default:
       break;
   }
@@ -133,7 +157,7 @@ void loop() {
 void setFreq()
 {
   int x = 0;  //define the length og freqChar is 6 for Mhz
-  uint32_t newFreq =0;
+  uint32_t newFreq = 0;
 
   //New Page showing the old frequency and prompt user for new frequency.
   lcd.clear();
@@ -151,7 +175,7 @@ void setFreq()
     {
       if (int(customKey) != 0) {
         lcd.print(customKey);
-        newFreq = (newFreq * 10) + charToNum(customKey); //change the char input to an int and udpate the newFreq variable appropriately.  
+        newFreq = (newFreq * 10) + charToNum(customKey); //change the char input to an int.
         customKey = 0;  //flush input
         x++; //TODO: add a 6 digit entry only
       }
@@ -162,18 +186,75 @@ void setFreq()
   freq = newFreq;  //update to new frequency.
   lcd.clear();
   delay(100); //wait to flush the display
-  
+
   //new page to confirm new frequency
   lcd.setCursor(4, 1);
   lcd.print("New frequency: ");
   lcd.setCursor(4, 2);
-  lcd.print(float(freq) / 1000, 3); 
+  lcd.print(float(freq) / 1000, 3);
   delay(3000);
   return;
 }
 
+void weatherMenu() {
+
+  initializeRadio();
+  radio.setSQOff();
+  freq = 162475; // Local Weather Frequency
+  radio.frequency(freq);
+  radio.setModeReceive();
+
+  lcd.clear();
+  delay(100);
+  lcd.setCursor(3, 0);
+  lcd.print("NOAA   Weather");
+  lcd.setCursor(5, 1);
+  lcd.print("MHz ");
+  lcd.print(float(freq) / 1000, 3);
+  lcd.setCursor(1, 3);
+  lcd.print("Press STOP to Exit");
+
+  char customKey = 0;
+  while (customKey != 'E')  //E is the stop button on keypad
+  {
+    customKey = customKeypad.getKey();
+  }
+  radio.setModeOff();
+  return;
+
+}
+
+void initializeRadio() {
+  // let the radio out of reset
+  digitalWrite(RESET_PIN, HIGH);
+  delay(5); // wait for device to come up
+  
+  lcd.setCursor(0, 0);
+  lcd.print("beginning radio setup");
+  delay(100);
+  // verify connection
+  lcd.setCursor(0, 1);
+  lcd.print("Testing connections");
+  lcd.setCursor(0, 2);
+  lcd.print(radio.testConnection() ? "radio connection successful" : "radio connection failed");
+  delay(2000);
+  // initialize device
+  lcd.clear();
+  delay(100);
+  lcd.setCursor(0, 0);
+  lcd.print("Initializing radio device...");
+  radio.initialize(); // initializes automatically for UHF 12.5kHz channel
+  delay(3000);
+
+  radio.setVolume1(0xFF);
+  radio.setVolume2(0xFF);
+  radio.setRfPower(0xF);
+ 
+  return;
+}
+
 int charToNum(char customKey)
-//To Be used in conjunction with the keypad to return a int value number
+//To Be uded in conjunction with the keypad to return a int value number
 {
   int value;
   switch (customKey) {

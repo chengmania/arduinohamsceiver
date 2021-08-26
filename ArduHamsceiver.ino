@@ -9,6 +9,7 @@
 // included library for keypad matrix
 #include <Keypad.h>
 // include the library code for LCD using spi connection
+// #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 
 //Hamsheild libraies
@@ -29,6 +30,23 @@ char hexaKeys[ROWS][COLS] = {
 byte rowPins[ROWS] = {53, 51, 49, 47}; //connect to the row pinouts of the keypad
 byte colPins[COLS] = {45, 43, 41, 39}; //connect to the column pinouts of the keypad
 /// end Key Pad matrix
+
+//Rotary Knob
+int clk = 15; // Connected to CLK on KY-040
+int dt = 16; // Connected to DT on KY-040
+int sw = 17; // Connected to SW
+int encoderPosCount = 0;
+int clkLast;
+int aVal;
+boolean bCW;
+int buttonState;             // the current reading from the input pin
+int lastButtonState = LOW;   // the previous reading from the input pin
+
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 25;    // the debounce time; increase if the output flickers
+
 
 //Hamshield Stuff
 // create object for radio
@@ -62,7 +80,15 @@ void setup() {
   lcd.setCursor(2, 1);
   lcd.print("ArduHamsceiver");
   delay(5000);
-
+  //Rotary Knob Setup
+  pinMode (clk, INPUT);
+  pinMode (dt, INPUT);
+  pinMode (sw, INPUT_PULLUP);
+  /* Read Pin A
+    Whatever state it's in will reflect the last position
+  */
+  clkLast = digitalRead(clk);
+  /////////////////////////////////////////////////////////////////////
 
   //setup Hamsheild
   // NOTE: if not using PWM out, it should be held low to avoid tx noise
@@ -80,31 +106,24 @@ void setup() {
 
   lcd.clear();
   delay(100);
+  mainMenu();
 }
-
+/*------------MAIN LOOP ------------------------*/
 void loop() {
-  lcd.setCursor(7, 0);
-  lcd.print("Menu");
-  lcd.setCursor(0, 1);
-  lcd.print("[1]Set Freq [2]Tx/Rx");
-  lcd.setCursor(0, 2);
-  lcd.print("[3]Weather  [4] Menu 4");
 
   char customKey = customKeypad.getKey();
-  /*if (customKey) {
-    lcd.clear();
-    lcd.print(customKey);
-    }*/
+  int x = 0;  //for use in testing menu items
 
-  int x = 0;
   switch (customKey)
   {
     case '1':
       setFreq();
+      mainMenu();
       break;
 
     case '2': //test code to for keypad matrix
       simplexRxTx();
+      mainMenu();
       break;
 
     case '3': //test code to for keypad matrix
@@ -112,8 +131,7 @@ void loop() {
       lcd.print("X");
       delay(100);
       weatherMenu();
-      lcd.clear();
-      delay(100);
+      mainMenu();
       break;
 
     case '4'://test code to for keypad matrix
@@ -130,15 +148,15 @@ void loop() {
         lcd.print(x);
         customKey = customKeypad.getKey();
       }
-      lcd.clear();
+      mainMenu();
       break;
 
     default:
       break;
   }
 }
-
-void setFreq()
+/*----------------Functions------------------------*/
+void setFreq()  //Set Frequency in Radio
 {
   int x = 0;  //define the length og freqChar is 6 for Mhz
   uint32_t newFreq = 0;
@@ -179,7 +197,7 @@ void setFreq()
   delay(3000);
   return;
 }
-
+/*------------------------------------------------------*/
 void weatherMenu() {
 
   initializeRadio();
@@ -204,16 +222,13 @@ void weatherMenu() {
     customKey = customKeypad.getKey();
   }
   radio.setModeOff();
-  lcd.clear();
-  delay(100);
   return;
-
 }
-
+/*------------------------------------------------------*/
 void simplexRxTx() {
   char customKey;   //intialize keypad in function
   lcd.clear();
-  delay(100);
+  delay(200);
   lcd.print("Press START to begin");
   while (customKey != 'S')
   {
@@ -226,9 +241,12 @@ void simplexRxTx() {
   lcd.setCursor(3, 1);
   lcd.print("Freq: ");
   lcd.print(float(freq) / 1000, 3);
+  lcd.setCursor(1, 3);
+  lcd.print("[F1] [F2]");
+
   //Getting ready to Rx/Tx
   radio.setSQOff();
-  radio.frequency(freq); 
+  radio.frequency(freq);
   radio.setModeReceive();
   currently_tx = false;
   radio.setRfPower(1);
@@ -237,7 +255,7 @@ void simplexRxTx() {
     if (!digitalRead(SWITCH_PIN))  //read the Hamsheild PTT button
     {
       //Currently transmitting
-      if (!currently_tx)  
+      if (!currently_tx)
       {
         currently_tx = true;
 
@@ -247,7 +265,7 @@ void simplexRxTx() {
         lcd.print("Tx");
         //radio.setTxSourceMic();
         //radio.setRfPower(1);
-      } 
+      }
       //Currently Receiving
     } else if (currently_tx) {
       radio.setModeReceive();
@@ -256,17 +274,72 @@ void simplexRxTx() {
       currently_tx = false;
     }
     customKey = customKeypad.getKey();
-  }while (customKey != 'E');
-  
+    if (customKey == 'A') {  //Set Freq with keypad
+      setFreq();
+      lcd.clear();
+      delay(100);
+      lcd.setCursor(3, 0);
+      lcd.print("Simplex Rx/TX");
+      lcd.setCursor(3, 1);
+      lcd.print("Freq: ");
+      lcd.print(float(freq) / 1000, 3);
+      lcd.setCursor(0, 3);
+      lcd.print("[F1][F2]");
+      radio.frequency(freq);
+    }
+    if (customKey == 'B') { //set freq with rotary knob
+      uint32_t newFreq = freq;
+      lcd.setCursor(3, 2);
+      lcd.print("Freq: ");
+      lcd.print(float(newFreq) / 1000, 3);
+      while (digitalRead(sw) != LOW) {
+        if ((millis() - lastDebounceTime) > debounceDelay) {
+          // whatever the reading is at, it's been there for longer than the debounce
+          // delay, so take it as the actual current state:
+          aVal = digitalRead(clk);
+          if (aVal != clkLast) { // Means the knob is rotating
+            // if the knob is rotating, we need to determine direction
+            // We do that by reading pin B.
+            if (digitalRead(dt) != aVal) { // Means pin A Changed first - We're Rotating Clockwise.
+              encoderPosCount ++;
+              newFreq += 25;
+              bCW = true;
+            } else {// Otherwise B changed first and we're moving CCW
+              bCW = false;
+              encoderPosCount--;
+              newFreq -= 25;
+            }
+            lcd.setCursor(3, 2);
+            lcd.print("Freq: ");
+            lcd.print(float(newFreq) / 1000, 3);
+          }
+        }
+      }
+
+      freq = newFreq;
+      lcd.clear();
+      delay(100);
+      lcd.setCursor(3, 0);
+      lcd.print("Simplex Rx/TX");
+      lcd.setCursor(3, 1);
+      lcd.print("Freq: ");
+      lcd.print(float(freq) / 1000, 3);
+      lcd.setCursor(0, 3);
+      lcd.print("[F1][F2]");
+      radio.frequency(freq);
+    }
+
+
+  } while (customKey != 'E');
+
   //shut down Radio and return to main menu
   radio.setModeOff();
-  lcd.clear();
-  delay(100);
+
   return;
 
 }
 
-
+/*------------------------------------------------------*/
 void initializeRadio() {
   // let the radio out of reset
   digitalWrite(RESET_PIN, HIGH);
@@ -292,12 +365,24 @@ void initializeRadio() {
   radio.setVolume1(0xFF);
   radio.setVolume2(0xFF);
   radio.setRfPower(0xF);
-
   lcd.clear();
-  delay(100);
+  delay(200);
   return;
 }
+/*------------------------------------------------------*/
+void mainMenu()
+{
+  lcd.clear();
+  delay(200);
+  lcd.setCursor(7, 0);
+  lcd.print("Menu");
+  lcd.setCursor(0, 1);
+  lcd.print("[1]Set Freq [2]Tx/Rx");
+  lcd.setCursor(0, 2);
+  lcd.print("[3]Weather  [4] Menu");
+}
 
+/*------------------------------------------------------*/
 int charToNum(char customKey)
 //To Be uded in conjunction with the keypad to return a int value number
 {

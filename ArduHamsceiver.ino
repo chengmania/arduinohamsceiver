@@ -9,7 +9,6 @@
 // included library for keypad matrix
 #include <Keypad.h>
 // include the library code for LCD using spi connection
-// #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 
 //Hamsheild libraies
@@ -63,8 +62,8 @@ void setup() {
   lcd.setCursor(2, 1);
   lcd.print("ArduHamsceiver");
   delay(5000);
-  
-  
+
+
   //setup Hamsheild
   // NOTE: if not using PWM out, it should be held low to avoid tx noise
   pinMode(MIC_PIN, OUTPUT);
@@ -78,7 +77,7 @@ void setup() {
   rssi_timeout = 0;
 
   //initializeRadio();
-  
+
   lcd.clear();
   delay(100);
 }
@@ -105,22 +104,7 @@ void loop() {
       break;
 
     case '2': //test code to for keypad matrix
-      lcd.clear();
-      lcd.setCursor(6, 0);
-      lcd.print("Menu 2");
-      lcd.setCursor(2, 2);
-      lcd.print("Press STOP to go back");
-      customKey = customKeypad.getKey();
-
-      while (customKey != 'E')
-      {
-        x++;
-        lcd.setCursor(10, 3);
-        lcd.print(x);
-        customKey = customKeypad.getKey();
-      }
-      lcd.clear();
-      delay(100);
+      simplexRxTx();
       break;
 
     case '3': //test code to for keypad matrix
@@ -171,17 +155,17 @@ void setFreq()
 
   //gather info from keypad matrix.
   char customKey = 0;
-  while (customKey != 'E') { //E is the stop button on keypad
-    {
-      if (int(customKey) != 0) {
-        lcd.print(customKey);
-        newFreq = (newFreq * 10) + charToNum(customKey); //change the char input to an int.
-        customKey = 0;  //flush input
-        x++; //TODO: add a 6 digit entry only
-      }
-      customKey = customKeypad.getKey();
+  while (customKey != 'E')  //E is the stop button on keypad
+  {
+    if (int(customKey) != 0) {
+      lcd.print(customKey);
+      newFreq = (newFreq * 10) + charToNum(customKey); //change the char input to an int.
+      customKey = 0;  //flush input
+      x++; //TODO: add a 6 digit entry only
     }
+    customKey = customKeypad.getKey();
   }
+
 
   freq = newFreq;  //update to new frequency.
   lcd.clear();
@@ -220,15 +204,74 @@ void weatherMenu() {
     customKey = customKeypad.getKey();
   }
   radio.setModeOff();
+  lcd.clear();
+  delay(100);
   return;
 
 }
+
+void simplexRxTx() {
+  char customKey;   //intialize keypad in function
+  lcd.clear();
+  delay(100);
+  lcd.print("Press START to begin");
+  while (customKey != 'S')
+  {
+    customKey = customKeypad.getKey();
+  }
+  initializeRadio();
+  //Diplay current Screen
+  lcd.setCursor(3, 0);
+  lcd.print("Simplex Rx/TX");
+  lcd.setCursor(3, 1);
+  lcd.print("Freq: ");
+  lcd.print(float(freq) / 1000, 3);
+  //Getting ready to Rx/Tx
+  radio.setSQOff();
+  radio.frequency(freq); 
+  radio.setModeReceive();
+  currently_tx = false;
+  radio.setRfPower(1);
+  do
+  {
+    if (!digitalRead(SWITCH_PIN))  //read the Hamsheild PTT button
+    {
+      //Currently transmitting
+      if (!currently_tx)  
+      {
+        currently_tx = true;
+
+        // set to transmit
+        radio.setModeTransmit();
+        lcd.setCursor(9, 3);
+        lcd.print("Tx");
+        //radio.setTxSourceMic();
+        //radio.setRfPower(1);
+      } 
+      //Currently Receiving
+    } else if (currently_tx) {
+      radio.setModeReceive();
+      lcd.setCursor(9, 3);
+      lcd.print("Rx");
+      currently_tx = false;
+    }
+    customKey = customKeypad.getKey();
+  }while (customKey != 'E');
+  
+  //shut down Radio and return to main menu
+  radio.setModeOff();
+  lcd.clear();
+  delay(100);
+  return;
+
+}
+
 
 void initializeRadio() {
   // let the radio out of reset
   digitalWrite(RESET_PIN, HIGH);
   delay(5); // wait for device to come up
-  
+
   lcd.setCursor(0, 0);
   lcd.print("beginning radio setup");
   delay(100);
@@ -249,7 +292,9 @@ void initializeRadio() {
   radio.setVolume1(0xFF);
   radio.setVolume2(0xFF);
   radio.setRfPower(0xF);
- 
+
+  lcd.clear();
+  delay(100);
   return;
 }
 
@@ -291,4 +336,3 @@ int charToNum(char customKey)
   }
   return value;
 }
-

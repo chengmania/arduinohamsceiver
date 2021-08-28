@@ -2,7 +2,7 @@
     peripherals such as a rotary encode push button, keypad matrix, 20x4 LCd display with
     adafruit spi daughterboard.  More to come.
 
-    Hamshield code can be found here: https://github.com/EnhancedRadioDevices/HamShield
+    Hamshield code, examples, and git can be found here: https://github.com/EnhancedRadioDevices/HamShield
 
     and it was a Saturday.
 */
@@ -31,7 +31,7 @@ byte rowPins[ROWS] = {53, 51, 49, 47}; //connect to the row pinouts of the keypa
 byte colPins[COLS] = {45, 43, 41, 39}; //connect to the column pinouts of the keypad
 /// end Key Pad matrix
 
-//Rotary Knob
+/*-----------------Rotary Knob-------------------------------------------------------------*/
 int clk = 15; // Connected to CLK on KY-040
 int dt = 16; // Connected to DT on KY-040
 int sw = 17; // Connected to SW
@@ -48,7 +48,7 @@ unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 25;    // the debounce time; increase if the output flickers
 
 
-//Hamshield Stuff
+//-----------------------Hamshield Stuff---------------------------------------------------//
 // create object for radio
 HamShield radio;
 // To use non-standard pins, use the following initialization
@@ -77,8 +77,8 @@ void setup() {
   // set up the LCD's number of rows and columns:
   lcd.begin(20, 4);
   // Print a message to the LCD.
-  lcd.setCursor(2, 1);
-  lcd.print("ArduHamsceiver");
+  lcd.setCursor(0, 1);
+  lcd.print("** ArduHamsceiver **");
   delay(5000);
   //Rotary Knob Setup
   pinMode (clk, INPUT);
@@ -106,6 +106,7 @@ void setup() {
 
   lcd.clear();
   delay(100);
+  //display menu on Start
   mainMenu();
 }
 /*------------MAIN LOOP ------------------------*/
@@ -200,12 +201,13 @@ void setFreq()  //Set Frequency in Radio
 /*------------------------------------------------------*/
 void weatherMenu() {
 
-  initializeRadio();
-  radio.setSQOff();
+  initializeRadio();  //Turn on hamshield and prepare to recieve
+  radio.setSQOff();  //Setting Squelch level to off (on seems to kill all incoming tranmission, need to determine proper squelch level and implementation.  
   freq = 162475; // Local Weather Frequency
-  radio.frequency(freq);
-  radio.setModeReceive();
+  radio.frequency(freq);  // set radio to the frequency
+  radio.setModeReceive();  //Set in receive mode throughout the function.  Being a weather receiver you can only listen. 
 
+  //Create new and display new screen
   lcd.clear();
   delay(100);
   lcd.setCursor(3, 0);
@@ -216,25 +218,31 @@ void weatherMenu() {
   lcd.setCursor(1, 3);
   lcd.print("Press STOP to Exit");
 
+  //Listen on the Key pad for the STOP button, which arduino knows as 'E'  
   char customKey = 0;
   while (customKey != 'E')  //E is the stop button on keypad
   {
     customKey = customKeypad.getKey();
   }
-  radio.setModeOff();
+  radio.setModeOff();  //Kill radio and return to main loop.  
   return;
 }
 /*------------------------------------------------------*/
-void simplexRxTx() {
+
+void simplexRxTx() 
+/* A simple simplex transmit and receive function.  
+ *  Creates a Walkie-Talkie type back and forth on a set 
+ *  frequency.  */
+{
   char customKey;   //intialize keypad in function
   lcd.clear();
   delay(200);
   lcd.print("Press START to begin");
-  while (customKey != 'S')
+  while (customKey != 'S')  //Wait for START key on the keypad.  
   {
     customKey = customKeypad.getKey();
   }
-  initializeRadio();
+  initializeRadio(); //Initialize radio
   //Diplay current Screen
   lcd.setCursor(3, 0);
   lcd.print("Simplex Rx/TX");
@@ -242,7 +250,7 @@ void simplexRxTx() {
   lcd.print("Freq: ");
   lcd.print(float(freq) / 1000, 3);
   lcd.setCursor(1, 3);
-  lcd.print("[F1] [F2]");
+  lcd.print("[F1] [F2]"); //show useable keys.  F1 is setfreq F2 is use knob to set freq
 
   //Getting ready to Rx/Tx
   radio.setSQOff();
@@ -255,7 +263,7 @@ void simplexRxTx() {
     if (!digitalRead(SWITCH_PIN))  //read the Hamsheild PTT button
     {
       //Currently transmitting
-      if (!currently_tx)
+      if (!currently_tx) 
       {
         currently_tx = true;
 
@@ -274,8 +282,9 @@ void simplexRxTx() {
       currently_tx = false;
     }
     customKey = customKeypad.getKey();
-    if (customKey == 'A') {  //Set Freq with keypad
-      setFreq();
+    if (customKey == 'A') {  //Set Freq with keypad.  Using the F1 Key
+      setFreq();  //Goto Set Frequency function and set with keypad
+      //Update frequency on dislay
       lcd.clear();
       delay(100);
       lcd.setCursor(3, 0);
@@ -287,7 +296,7 @@ void simplexRxTx() {
       lcd.print("[F1][F2]");
       radio.frequency(freq);
     }
-    if (customKey == 'B') { //set freq with rotary knob
+    if (customKey == 'B') { //set freq with rotary knob, using the F2 key
       uint32_t newFreq = freq;
       lcd.setCursor(3, 2);
       lcd.print("Freq: ");
@@ -340,7 +349,11 @@ void simplexRxTx() {
 }
 
 /*------------------------------------------------------*/
-void initializeRadio() {
+void initializeRadio() 
+/*method in handie talkie example sketch used to initialize the hamshield
+ * 
+ */
+{
   // let the radio out of reset
   digitalWrite(RESET_PIN, HIGH);
   delay(5); // wait for device to come up
@@ -384,7 +397,7 @@ void mainMenu()
 
 /*------------------------------------------------------*/
 int charToNum(char customKey)
-//To Be uded in conjunction with the keypad to return a int value number
+//To Be used in conjunction with the keypad to return a int value number
 {
   int value;
   switch (customKey) {

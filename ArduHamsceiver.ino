@@ -9,7 +9,6 @@
 // included library for keypad matrix
 #include <Keypad.h>
 // include the library code for LCD using spi connection
-// #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 
 //Hamsheild libraies

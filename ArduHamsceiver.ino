@@ -66,6 +66,7 @@ SimpleRotary rotary(CLK, DT, SW);
 void setup() {
   // set up the LCD's number of rows and columns:
   lcd.begin(20, 4);
+  lcd.setBacklight(1);
   // Print a message to the LCD.
   lcd.setCursor(0, 1);
   lcd.print("** ArduHamsceiver **");
@@ -119,19 +120,7 @@ void loop() {
       break;
 
     case '4'://test code to for keypad matrix
-      lcd.clear();
-      lcd.setCursor(6, 0);
-      lcd.print("Menu 4");
-      lcd.setCursor(2, 2);
-      lcd.print("Press STOP to go back");
-      customKey = customKeypad.getKey();
-      while (customKey != 'E')
-      {
-        x++;
-        lcd.setCursor(10, 3);
-        lcd.print(x);
-        customKey = customKeypad.getKey();
-      }
+      repeaterTest();
       displayMainMenu();
       break;
 
@@ -358,6 +347,100 @@ void simplexRxTx()
 
   return;
 }
+/*-------------SCAN MODE--------------------------------*/
+void scanMode() {
+  char customKey;   //intialize keypad in function
+
+  lcd.clear();
+  delay(200);
+  lcd.print("Press START to begin");
+  while (customKey != 'S')  //Wait for START key on the keypad.
+  {
+    customKey = customKeypad.getKey();
+  }
+  initializeRadio(); //Initialize radio
+  //Diplay current Screen
+  lcd.setCursor(3, 0);
+  lcd.print("Scanning");
+
+
+  freq = radio.scanMode(146000, 148000, 200, 250, 0);
+  lcd.setCursor(3, 1);
+  lcd.print("Freq: ");
+  lcd.print(float(freq) / 1000, 3);
+
+  while (customKey != 'E')
+  {
+    customKey = customKeypad.getKey();
+  }
+}
+
+/*---------------Repeater Test --------------------------*/
+
+////DFW!!!!/////
+void repeaterTest()
+{
+  uint32_t txFreq = 147690;
+  uint32_t rxFreq = 147090;
+  float plTone = 131.80;
+
+  radio.setCtcss(plTone);
+  //radio.setCdcssSel(0);
+  
+  //radio.enableCtcssTx();
+
+  char customKey;   //intialize keypad in function
+
+  lcd.clear();
+  delay(200);
+  lcd.print("Press START to begin");
+  while (customKey != 'S')  //Wait for START key on the keypad.
+  {
+    customKey = customKeypad.getKey();
+  }
+  initializeRadio();
+
+  radio.frequency(rxFreq);
+
+  radio.setSQOff();
+
+  radio.setModeReceive();
+  currently_tx = false;
+  radio.setRfPower(1);
+  do
+  {
+    customKey = customKeypad.getKey();
+
+    if (!digitalRead(SWITCH_PIN))  //read the Hamsheild PTT button
+    {
+      //Currently transmitting
+      if (!currently_tx)
+      {
+        currently_tx = true;
+        radio.enableCtcss();
+        radio.enableCtcssTx();
+
+        radio.frequency(txFreq);
+        // set to transmit
+        radio.setModeTransmit();
+        lcd.setCursor(9, 3);
+        lcd.print("Tx");
+        //radio.setTxSourceMic();
+        //radio.setRfPower(1);
+      }
+      //Currently Receiving
+    } else if (currently_tx) {
+      
+      radio.frequency(rxFreq);
+      radio.setModeReceive();
+      lcd.setCursor(9, 3);
+      lcd.print("Rx");
+      currently_tx = false;
+    }
+  } while (customKey != 'E');
+  radio.setModeOff();
+  return;
+}
 
 /*------------------------------------------------------*/
 void initializeRadio()
@@ -403,7 +486,7 @@ void displayMainMenu()
   lcd.setCursor(0, 1);
   lcd.print("[1]Set Freq [2]Tx/Rx");
   lcd.setCursor(0, 2);
-  lcd.print("[3]Weather  [4] Menu");
+  lcd.print("[3]Weather  [4]Test");
 }
 
 /*------------------------------------------------------*/
